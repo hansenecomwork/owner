@@ -1,0 +1,10 @@
+{
+  "name": "念念",
+  "short_name": "念念",
+  "description": "用家人的回忆，留住一个人说话的样子",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05060c",
+  "theme_color": "#05060c",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

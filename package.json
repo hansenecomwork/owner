@@ -1,0 +1,29 @@
+{
+  "name": "niannian",
+  "version": "1.0.0",
+  "description": "念念 — 用家人的回忆，留住一个人说话的样子",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "dev": "node --watch --env-file-if-exists=.env server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hansenecomwork/owner.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hansenecomwork/owner/issues"
+  },
+  "homepage": "https://github.com/hansenecomwork/owner#readme",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
+    "express": "^5.3.0",
+    "zod": "^4.6.7"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "private": true
+}
