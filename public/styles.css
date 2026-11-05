@@ -322,6 +322,13 @@ img { display: block; max-width: 100%; }
 .memory.pending { border-color: rgba(183, 156, 255, .45); }
 .empty { text-align: center; color: var(--ink-3); padding: 40px 10px; }
 
+/* ---------- 导入 ---------- */
+.quote { display: block; margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--violet); color: var(--ink-3); font-size: .86rem; }
+.thinking-row { display: flex; align-items: center; gap: 14px; color: var(--ink-2); }
+.spinner { width: 34px; height: 34px; flex: none; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0 65%, var(--warm) 90%, transparent);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px)); animation: spin 1.4s linear infinite; }
+.tag.chat { color: var(--ok); border-color: rgba(142, 240, 192, .4); }
+
 /* ---------- 无障碍：减少动态 / 透明度 / 高对比 ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }

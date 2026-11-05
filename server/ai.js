@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { buildSystemPrompt, describeSpeaker, MEMORY_EXTRACT_PROMPT } from './prompt.js';
+import { buildAnalysisPrompt, normalizeAnalysis } from '../public/wechat-import.js';
 
 const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5-5';
 const MEMORY_MODEL = process.env.CLAUDE_MEMORY_MODEL || MODEL;
@@ -135,4 +136,39 @@ async function demoReply(persona, history, onText) {
     await new Promise((r) => setTimeout(r, 35));
   }
   return reply;
+}
+
+// ---------- 从微信聊天记录读懂 TA ----------
+
+const AnalysisSchema = z.object({
+  personality: z.string(),
+  traits: z.array(z.string()),
+  speakingStyle: z.string(),
+  catchphrases: z.array(z.string()),
+  addressesOtherAs: z.string(),
+  loveStyle: z.string(),
+  habits: z.string(),
+  likes: z.string(),
+  memories: z.array(z.object({ text: z.string(), evidence: z.string(), date: z.string() })),
+  gaps: z.string(),
+});
+
+export async function analyzeChat(persona, { who, other, stats, samples }) {
+  if (!client) {
+    // 演示模式：只用本地统计
+    return { ...normalizeAnalysis({ catchphrases: (stats.catchphrases || []).slice(0, 6).map((c) => c.text), addressesOtherAs: stats.vocatives?.[0]?.text || '' }), demo: true };
+  }
+  const res = await client.messages.parse({
+    model: MODEL,
+    max_tokens: 16000,
+    thinking: { type: 'adaptive' },
+    output_config: { effort: 'medium', format: zodOutputFormat(AnalysisSchema) },
+    messages: [{ role: 'user', content: buildAnalysisPrompt({ who, other, stats, samples }) }],
+  });
+  if (res.stop_reason === 'refusal' || !res.parsed_output) {
+    const err = new Error('这次没能分析出结果，请换一段聊天记录再试');
+    err.status = 422;
+    throw err;
+  }
+  return normalizeAnalysis(res.parsed_output);
 }

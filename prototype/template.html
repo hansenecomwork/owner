@@ -1,0 +1,672 @@
+<title>念念</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* 布局：一屏一事，居中单栏（最宽 640px）；深夜到黎明的光，玻璃材质浮在上面。刻意只做深色一种外观。 */
+:root {
+  --bg: #06070d;
+  --ink: rgba(255, 255, 255, .96);
+  --ink-2: rgba(255, 255, 255, .74);
+  --ink-3: rgba(255, 255, 255, .52);
+  --glass: rgba(255, 255, 255, .07);
+  --glass-hi: rgba(255, 255, 255, .12);
+  --glass-solid: rgba(20, 22, 36, .82);
+  --edge: rgba(255, 255, 255, .16);
+  --edge-hi: rgba(255, 255, 255, .34);
+  --warm: #ffcf9e;
+  --warm-2: #ff9e7a;
+  --cool: #8fd8ff;
+  --violet: #b79cff;
+  --danger: #ff9a9a;
+  --field: rgba(0, 0, 0, .3);
+  --on-warm: #24140a;
+  --serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --blur: blur(26px) saturate(170%);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.65 var(--sans); letter-spacing: .01em; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--cool); outline-offset: 3px; }
+
+.aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.aurora i { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .55; animation: drift 40s ease-in-out infinite alternate; }
+.aurora i:nth-child(1) { width: 70vmax; height: 70vmax; left: -25vmax; top: -30vmax; background: radial-gradient(circle, #3b3f9e, transparent 65%); }
+.aurora i:nth-child(2) { width: 60vmax; height: 60vmax; right: -30vmax; top: 10vh; background: radial-gradient(circle, #1d6a86, transparent 65%); animation-delay: -14s; }
+.aurora i:nth-child(3) { width: 55vmax; height: 55vmax; left: 5vw; bottom: -35vmax; background: radial-gradient(circle, #9a4f3c, transparent 62%); animation-delay: -27s; opacity: .45; }
+@keyframes drift { to { transform: translate3d(6vw, 4vh, 0) scale(1.08); } }
+
+#app { position: relative; z-index: 1; min-height: 100%; height: 100%; }
+.screen { max-width: 640px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 18px; animation: enter .45s cubic-bezier(.2, .8, .2, 1); }
+@keyframes enter { from { opacity: .001; transform: translateY(10px); filter: blur(6px); } }
+
+.glass { background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border: 1px solid var(--edge); border-radius: 26px; box-shadow: inset 0 1px 0 var(--edge-hi), 0 24px 60px -24px rgba(0, 0, 0, .75); }
+.card { padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 0 24px; border-radius: 999px; border: 1px solid var(--edge); background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: inset 0 1px 0 var(--edge-hi); font-size: 1.05rem; font-weight: 600; letter-spacing: .04em; color: var(--ink); text-decoration: none; transition: transform .12s ease-out, background .16s ease; user-select: none; }
+.btn:hover { background: var(--glass-hi); }
+.btn:active { transform: scale(.97); }
+.btn[disabled] { opacity: .45; pointer-events: none; }
+.btn svg { width: 22px; height: 22px; flex: none; }
+.btn.primary { color: var(--on-warm); border-color: rgba(255, 255, 255, .55); background: linear-gradient(135deg, #ffe0bd, #ffaa87); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 12px 30px -12px rgba(255, 150, 110, .6); }
+.btn.small { min-height: 46px; padding: 0 16px; font-size: .92rem; }
+.btn.icon { width: 50px; height: 50px; min-height: 0; padding: 0; flex: none; }
+.btn.block { width: 100%; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > .btn { flex: 1 1 200px; }
+.link { background: none; border: 0; color: var(--ink-3); text-decoration: underline; text-underline-offset: 4px; min-height: 44px; padding: 0 6px; }
+
+.hero { text-align: center; padding-block: 7vh 2vh; }
+.hero h1 { margin: 0 0 10px; font: 600 clamp(3rem, 14vw, 4.4rem)/1 var(--serif); letter-spacing: .14em; background: linear-gradient(180deg, #fff 30%, rgba(255, 214, 180, .9)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { margin: 0 auto; max-width: 26em; color: var(--ink-2); font-size: 1.08rem; text-wrap: balance; }
+.eyebrow { font-size: .78rem; letter-spacing: .18em; color: var(--warm); text-transform: uppercase; }
+h2 { margin: 0; font: 600 1.55rem/1.3 var(--serif); letter-spacing: .04em; text-wrap: balance; }
+h3 { margin: 0; font-size: 1.02rem; letter-spacing: .04em; }
+p { margin: 0; }
+.muted { color: var(--ink-2); }
+.faint { color: var(--ink-3); font-size: .88rem; }
+.privacy { display: flex; gap: 12px; align-items: flex-start; font-size: .9rem; color: var(--ink-2); padding: 16px 18px; }
+.privacy svg { width: 22px; height: 22px; flex: none; color: var(--ok, #8ef0c0); margin-top: 2px; }
+
+details.glass { padding: 4px 20px; }
+details summary { cursor: pointer; min-height: 54px; display: flex; align-items: center; font-weight: 600; list-style: none; }
+details summary::after { content: '+'; margin-left: auto; font-size: 1.4rem; color: var(--ink-3); }
+details[open] summary::after { content: '–'; }
+details ol { margin: 0 0 16px; padding-left: 1.3em; display: flex; flex-direction: column; gap: 10px; color: var(--ink-2); font-size: .94rem; }
+details b { color: var(--ink); }
+.warn { color: var(--warm); }
+
+.textarea, .input { width: 100%; min-height: 56px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--edge); background: var(--field); color: var(--ink); line-height: 1.6; resize: vertical; }
+.textarea { min-height: 120px; }
+.textarea:focus, .input:focus { outline: none; border-color: var(--warm); }
+label.lbl { display: flex; flex-direction: column; gap: 8px; font-weight: 600; }
+label.lbl span.faint { font-weight: 400; }
+
+.people { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.person { min-height: 92px; flex-direction: column; gap: 2px; border-radius: 20px; padding: 10px; }
+.person small { font-weight: 400; color: var(--ink-3); font-size: .82rem; letter-spacing: 0; }
+.person[aria-pressed='true'] { border-color: var(--warm); background: rgba(255, 207, 158, .16); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--edge); background: rgba(255, 255, 255, .05); font-size: .98rem; }
+.chip b { font-weight: 500; color: var(--ink-3); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed='true'] { border-color: var(--warm); background: rgba(255, 207, 158, .18); }
+.chip.x::after { content: '×'; color: var(--ink-3); margin-left: 2px; }
+
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.fact { padding: 14px 12px; border-radius: 18px; background: rgba(255, 255, 255, .05); border: 1px solid var(--edge); min-width: 0; }
+.fact .v { font: 600 1.45rem/1.2 var(--serif); color: var(--warm); font-variant-numeric: tabular-nums; }
+.fact .k { font-size: .8rem; color: var(--ink-3); }
+.hours { display: flex; align-items: flex-end; gap: 3px; height: 64px; }
+.hours i { flex: 1; min-height: 2px; border-radius: 3px 3px 1px 1px; background: linear-gradient(180deg, var(--warm), rgba(255, 158, 122, .35)); }
+.hours-axis { display: flex; justify-content: space-between; font-size: .72rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+.thinking { display: flex; align-items: center; gap: 14px; }
+.orb { width: 44px; height: 44px; border-radius: 50%; flex: none; background: conic-gradient(from 0deg, transparent 0 65%, var(--warm) 90%, transparent); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px)); animation: spin 1.4s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.shimmer { height: 14px; border-radius: 7px; background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.16), rgba(255,255,255,.06)); background-size: 200% 100%; animation: sh 1.6s linear infinite; }
+@keyframes sh { to { background-position: -200% 0; } }
+
+.mem { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 18px; border: 1px solid var(--edge); background: rgba(255, 255, 255, .04); cursor: pointer; }
+.mem input { width: 26px; height: 26px; flex: none; margin: 2px 0 0; accent-color: var(--warm); }
+.mem .q { display: block; margin-top: 6px; font-size: .86rem; color: var(--ink-3); border-left: 2px solid var(--violet); padding-left: 10px; }
+.gap { padding: 16px 18px; border-radius: 18px; background: rgba(255, 207, 158, .08); border: 1px solid rgba(255, 207, 158, .3); color: var(--ink-2); font-size: .94rem; }
+.gap b { color: var(--warm); }
+.avatar { width: var(--s, 110px); height: var(--s, 110px); border-radius: 50%; flex: none; overflow: hidden; display: grid; place-items: center; border: 1px solid var(--edge-hi); background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.25), rgba(255,255,255,.04)); font: 600 calc(var(--s, 110px) * .38)/1 var(--serif); color: var(--warm); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.photo-pick { display: flex; align-items: center; gap: 16px; }
+
+/* 对话 */
+.talk { height: 100%; max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; padding-block: 10px 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar { display: flex; align-items: center; gap: 10px; padding: 7px; border-radius: 999px; }
+.bar .t { flex: 1; min-width: 0; text-align: center; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bar .t small { display: block; font-weight: 400; font-size: .72rem; color: var(--ink-3); letter-spacing: .05em; }
+.stage { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding-block: 8px; }
+.portrait { --level: 0; position: relative; width: min(58vw, 30vh, 280px); aspect-ratio: 1; max-width: 100%; }
+.portrait .avatar { --s: 100%; font-size: clamp(3.5rem, 22vw, 7.5rem); position: relative; z-index: 2; box-shadow: 0 30px 80px -20px rgba(0,0,0,.85); animation: breathe 7s ease-in-out infinite; }
+.portrait .halo { position: absolute; inset: -16%; border-radius: 50%; z-index: 1; background: radial-gradient(circle, rgba(255,196,150,.45), rgba(183,156,255,.18) 45%, transparent 70%); filter: blur(18px); opacity: .5; transition: opacity .3s; }
+.portrait .ring { position: absolute; inset: -5%; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.14); z-index: 1; }
+.portrait .ring::before { content: ''; position: absolute; inset: -1.5px; border-radius: 50%; opacity: 0; transition: opacity .3s; background: conic-gradient(from 0deg, transparent 0 70%, rgba(255,207,158,.95) 88%, transparent); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); animation: spin 1.6s linear infinite; }
+.s-thinking .portrait .ring::before { opacity: 1; }
+.s-speaking .portrait .halo { opacity: 1; animation: pulse .9s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.012); } }
+@keyframes pulse { 50% { transform: scale(1.1); } }
+.caption { width: 100%; max-height: 34vh; overflow-y: auto; text-align: center; font: 500 clamp(1.2rem, 4.6vw, 1.5rem)/1.65 var(--sans); letter-spacing: .03em; text-shadow: 0 2px 18px rgba(0,0,0,.6); scrollbar-width: none; min-height: 3.3em; }
+.caption .me { display: block; font-size: .78em; color: var(--ink-3); font-weight: 400; margin-bottom: 8px; }
+.caption .err { display: block; color: var(--danger); font-size: .78em; margin-top: 8px; }
+.compose { display: flex; gap: 10px; padding: 8px; border-radius: 999px; align-items: center; }
+.compose .input { border-radius: 999px; min-height: 58px; font-size: 1.05rem; }
+.compose .btn.primary { width: 58px; height: 58px; min-height: 0; padding: 0; flex: none; }
+.tag-ai { font-size: .74rem; color: var(--ink-3); text-align: center; margin-top: 8px; }
+
+.scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(3, 4, 10, .62); animation: enter .2s ease; }
+.sheet { width: 100%; max-width: 540px; max-height: 84vh; overflow-y: auto; padding: 24px 20px; background: var(--glass-solid); display: flex; flex-direction: column; gap: 14px; }
+.hotlines { display: grid; gap: 8px; }
+.hotlines div { display: flex; justify-content: space-between; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--edge); background: rgba(255,255,255,.05); }
+.hotlines b { color: var(--warm); user-select: all; letter-spacing: .04em; }
+.toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 14px); transform: translateX(-50%); z-index: 80; width: min(92vw, 480px); padding: 14px 18px; background: var(--glass-solid); border-radius: 18px; animation: enter .3s ease; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-transparency: reduce) { .glass, .btn { background: #171926; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@media (max-width: 420px) { .fact { padding: 12px 10px; } .fact .v { font-size: 1.25rem; } }
+</style>
+
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<main id="app"></main>
+
+<script type="module">
+// ===== 共享代码：与 App 同一份（构建时注入）=====
+/*__WECHAT__*/
+/*__PROMPT__*/
+const SAMPLE_CHAT = /*__SAMPLE__*/'';
+
+// ===== 原型页 =====
+const $app = document.getElementById('app');
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const I = {
+  back: '<path d="m15 18-6-6 6-6"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>',
+  spark: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/>',
+  lock: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  sound: '<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5Z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.7"/>',
+  mute: '<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5Z"/><path d="m22 9-6 6M16 9l6 6"/>',
+  book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+  image: '<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+};
+const icon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+const ls = {
+  get(k) { try { return JSON.parse(localStorage.getItem('nn.proto.' + k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem('nn.proto.' + k, JSON.stringify(v)); } catch {} },
+  clear() { try { Object.keys(localStorage).filter((k) => k.startsWith('nn.proto.')).forEach((k) => localStorage.removeItem(k)); } catch {} },
+};
+function toast(html, ms = 3800) {
+  const t = document.createElement('div');
+  t.className = 'toast glass';
+  t.innerHTML = html;
+  document.body.append(t);
+  setTimeout(() => t.remove(), ms);
+}
+const ymd = (d) => (d ? `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}` : '');
+
+// Claude（在 claude.ai 里打开时可用；第一次使用会请你允许）
+let sample = null;
+const sampleReady = (window.claude?.use ? window.claude.use('sample') : Promise.resolve(null)).then((s) => (sample = s)).catch(() => null);
+const SAMPLE_ERR = {
+  not_granted: '你没有允许这个页面使用 Claude。',
+  rate_limited: '请求太频繁了，请等一分钟再试。',
+  refused: 'Claude 没有回答这个请求。',
+  prompt_too_large: '内容太多了，请导入短一些的聊天记录。',
+  session_expired: '登录已过期，请刷新页面。',
+};
+const errText = (e) => SAMPLE_ERR[e?.code] || `没有成功（${esc(e?.code || e?.message || '未知错误')}）。`;
+
+// ---------- 状态 ----------
+const S = {
+  parsed: null, who: '', other: '', stats: null, samples: null,
+  profile: null,   // 分析结果（可编辑）
+  basics: { callName: '', gender: 'female', photo: null },
+  memories: [],    // [{text, evidence, date, on}]
+  turns: [], muted: ls.get('muted') || false,
+};
+
+// ========== 第 0 屏：欢迎 ==========
+function viewWelcome() {
+  const last = ls.get('profile');
+  $app.innerHTML = `
+  <section class="screen">
+    <header class="hero">
+      <h1>念念</h1>
+      <p>导入和 TA 的微信聊天记录，留住 TA 说话的样子。</p>
+    </header>
+    ${last ? `<button class="btn block primary" id="resume">继续和 ${esc(last.basics.callName || last.who)} 说话</button>` : ''}
+    <div class="card glass">
+      <div class="eyebrow">第一步</div>
+      <h2>导入微信聊天记录</h2>
+      <p class="muted">支持导出的 TXT、CSV、JSON，也可以直接把复制的聊天内容粘贴进来。</p>
+      <div class="row">
+        <label class="btn ${last ? '' : 'primary'}" for="file">${icon('upload')}选择文件</label>
+        <button class="btn" id="demo">${icon('spark')}用示例记录体验</button>
+      </div>
+      <input type="file" id="file" accept=".txt,.csv,.json,.html,text/*" hidden>
+      <button class="link" id="paste-toggle">或者直接粘贴聊天内容</button>
+      <div id="paste" hidden>
+        <textarea class="textarea" id="paste-text" rows="7" placeholder="例如：&#10;2024-01-20 07:30:00 秀兰&#10;吃了没&#10;2024-01-20 07:45:21 老陈&#10;吃了"></textarea>
+        <button class="btn block" id="paste-go" style="margin-top:10px">用这段内容</button>
+      </div>
+    </div>
+    <div class="privacy glass">${icon('lock')}<span>聊天记录只在你的浏览器里解析，原文不会上传、也不会保存。只有挑出来的一小部分 TA 的消息（手机号、卡号等已自动隐藏）会交给 Claude 分析说话方式。</span></div>
+    <details class="glass">
+      <summary>怎么把微信聊天记录拿出来？</summary>
+      <ol>
+        <li><b>最简单（电脑版微信）：</b>打开和 TA 的聊天，按住 Shift 点选一段消息 → 右键「复制」，或者多选后「合并转发」给自己再复制，然后粘贴到上面。适合几百条以内。</li>
+        <li><b>手机上：</b>长按一条消息 →「多选」→ 勾选 →「合并转发」到「文件传输助手」，在电脑上打开后复制粘贴。</li>
+        <li><b>全部记录：</b>有第三方工具可以把电脑版微信的聊天导出成 TXT / CSV。<span class="warn">这类工具要解密微信数据库，不是微信官方功能，可能违反微信用户协议，也有泄露隐私的风险。</span>只在自己的电脑、自己的账号上用，用完删掉导出文件。</li>
+        <li><b>先问一声：</b>这些聊天也是家里另一个人的私事。导入前，请先得到 TA 的爱人或子女的同意。</li>
+      </ol>
+    </details>
+    ${last ? `<button class="link" id="forget">清除这台设备上保存的资料</button>` : ''}
+    <p class="faint" style="text-align:center">示例记录里的「秀兰」和「老陈」是虚构的人物。</p>
+  </section>`;
+  const f = $app.querySelector('#file');
+  f.addEventListener('change', async () => { const file = f.files[0]; if (file) loadText(await file.text(), file.name); });
+  $app.querySelector('#demo').onclick = () => { S.basics.callName = '老伴'; loadText(SAMPLE_CHAT, '示例记录'); };
+  $app.querySelector('#paste-toggle').onclick = () => { const p = $app.querySelector('#paste'); p.hidden = !p.hidden; if (!p.hidden) $app.querySelector('#paste-text').focus(); };
+  $app.querySelector('#paste-go').onclick = () => loadText($app.querySelector('#paste-text').value, '粘贴的内容');
+  $app.querySelector('#resume')?.addEventListener('click', () => { Object.assign(S, structuredClone(last)); S.turns = []; viewTalk(); });
+  $app.querySelector('#forget')?.addEventListener('click', () => { ls.clear(); viewWelcome(); toast('已清除。'); });
+}
+
+function loadText(text, label) {
+  if (/<html|<body|<div/i.test(text.slice(0, 2000))) {
+    const doc = new DOMParser().parseFromString(text, 'text/html');
+    text = doc.body.innerText || doc.body.textContent || '';
+  }
+  const parsed = parseWeChat(text);
+  if (parsed.messages.length < 5 || parsed.senders.length < 1) {
+    toast('<b class="warn">没能认出聊天格式。</b>请确认每条消息带有「时间 + 名字」，或换一种导出格式。', 6000);
+    return;
+  }
+  S.parsed = { ...parsed, label };
+  viewWho();
+}
+
+// ========== 第 1 屏：哪一位是 TA ==========
+function viewWho() {
+  const { messages, senders, format, label } = S.parsed;
+  const times = messages.map((m) => m.time).filter(Boolean).sort((a, b) => a - b);
+  const group = senders.length > 3;
+  $app.innerHTML = `
+  <section class="screen">
+    <button class="btn icon" id="back" aria-label="返回">${icon('back')}</button>
+    <div class="card glass">
+      <div class="eyebrow">读到了 · ${esc(label)} · ${esc(format)}格式</div>
+      <h2>${messages.length.toLocaleString()} 条消息</h2>
+      <p class="muted">${times.length ? `从 ${ymd(times[0])} 到 ${ymd(times[times.length - 1])}，` : ''}一共 ${senders.length} 个人在说话。</p>
+      ${group ? `<p class="gap">这看起来像群聊。只用单聊的效果最好：群里 TA 说话的样子和私下里不一样。</p>` : ''}
+    </div>
+    <div class="card glass">
+      <h2>哪一位是 TA？</h2>
+      <div class="people">${senders.slice(0, 12).map((s) => `<button class="btn person" data-who="${esc(s.name)}" aria-pressed="false">${esc(s.name)}<small>${s.count} 条</small></button>`).join('')}</div>
+    </div>
+  </section>`;
+  $app.querySelector('#back').onclick = viewWelcome;
+  $app.querySelectorAll('[data-who]').forEach((b) => (b.onclick = () => {
+    S.who = b.dataset.who;
+    S.other = senders.find((s) => s.name !== S.who)?.name || '';
+    viewBasics();
+  }));
+}
+
+// ========== 第 2 屏：基本信息 ==========
+function viewBasics() {
+  const b = S.basics;
+  $app.innerHTML = `
+  <section class="screen">
+    <button class="btn icon" id="back" aria-label="返回">${icon('back')}</button>
+    <div class="card glass">
+      <div class="eyebrow">关于 ${esc(S.who)}</div>
+      <h2>再补三件小事</h2>
+      <label class="lbl">家里人怎么叫 TA<input class="input" id="call" value="${esc(b.callName)}" placeholder="例如：妈、奶奶、老伴"></label>
+      <div class="lbl">性别
+        <div class="chips">
+          <button class="chip" data-g="female" aria-pressed="${b.gender === 'female'}">她（女）</button>
+          <button class="chip" data-g="male" aria-pressed="${b.gender === 'male'}">他（男）</button>
+        </div>
+      </div>
+      <div class="lbl">一张照片 <span class="faint">可以不选。照片只留在这台设备上。</span>
+        <div class="photo-pick">
+          <div class="avatar" id="ph" style="--s:88px">${b.photo ? `<img src="${b.photo}" alt="">` : esc(S.who.slice(-1))}</div>
+          <label class="btn small" for="photo">${icon('image')}选照片</label>
+          <input type="file" id="photo" accept="image/*" hidden>
+        </div>
+      </div>
+    </div>
+    <div class="card glass">
+      <label class="lbl">你是哪一位？<span class="faint">TA 会这样认出是谁在说话</span>
+        <input class="input" id="other" value="${esc(S.other)}"></label>
+    </div>
+    <button class="btn primary block" id="go">${icon('spark')}开始读懂 ${esc(S.who)}</button>
+  </section>`;
+  $app.querySelector('#back').onclick = viewWho;
+  $app.querySelectorAll('[data-g]').forEach((c) => (c.onclick = () => { b.gender = c.dataset.g; $app.querySelectorAll('[data-g]').forEach((x) => x.setAttribute('aria-pressed', String(x === c))); }));
+  $app.querySelector('#photo').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    b.photo = await shrink(file);
+    $app.querySelector('#ph').innerHTML = `<img src="${b.photo}" alt="">`;
+  };
+  $app.querySelector('#go').onclick = () => {
+    b.callName = $app.querySelector('#call').value.trim();
+    S.other = $app.querySelector('#other').value.trim() || S.other;
+    viewAnalyze();
+  };
+}
+
+async function shrink(file, max = 480) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', .85);
+  } finally { URL.revokeObjectURL(url); }
+}
+
+// ========== 第 3 屏：分析 ==========
+function statsHtml(st) {
+  const max = Math.max(...st.hours, 1);
+  const pct = (x) => `${Math.round(x * 100)}%`;
+  return `
+    <div class="facts">
+      <div class="fact"><div class="v">${st.total}</div><div class="k">TA 的消息</div></div>
+      <div class="fact"><div class="v">${st.medianLength}</div><div class="k">一句话通常几个字</div></div>
+      <div class="fact"><div class="v">${pct(st.voiceShare)}</div><div class="k">发的是语音</div></div>
+    </div>
+    ${st.catchphrases.length ? `<h3>反复说的话</h3><div class="chips">${st.catchphrases.map((c) => `<span class="chip">${esc(c.text)}<b>×${c.count}</b></span>`).join('')}</div>` : ''}
+    ${st.particles.length || st.emojis.length ? `<h3>语气和表情</h3><div class="chips">${[...st.particles.map((c) => `<span class="chip">句尾「${esc(c.text)}」<b>×${c.count}</b></span>`), ...st.emojis.map((c) => `<span class="chip">${esc(c.text)}<b>×${c.count}</b></span>`), ...st.punctuation.map((p) => `<span class="chip">${esc(p)}</span>`)].join('')}</div>` : ''}
+    ${st.hours.some(Boolean) ? `<h3>一天里什么时候发消息${st.topPeriod ? `<span class="faint">（最多是${st.topPeriod}）</span>` : ''}</h3>
+      <div class="hours" role="img" aria-label="按小时统计的消息数">${st.hours.map((h) => `<i style="height:${Math.max(3, (h / max) * 100)}%"></i>`).join('')}</div>
+      <div class="hours-axis"><span>0点</span><span>6点</span><span>12点</span><span>18点</span><span>23点</span></div>` : ''}`;
+}
+
+async function viewAnalyze() {
+  const msgs = S.parsed.messages;
+  S.stats = analyzeSpeaker(msgs, S.who);
+  S.samples = pickSamples(msgs, S.who);
+  const st = S.stats;
+  $app.innerHTML = `
+  <section class="screen">
+    <button class="btn icon" id="back" aria-label="返回">${icon('back')}</button>
+    <div class="card glass">
+      <div class="eyebrow">本地统计 · 没有用到 AI</div>
+      <h2>${esc(S.who)}说话的样子</h2>
+      ${statsHtml(st)}
+    </div>
+    <div class="card glass" id="ai">
+      <div class="thinking"><div class="orb"></div><div><h3>正在读懂 ${esc(S.who)}…</h3><p class="faint">从 ${S.samples.pairs.length + S.samples.solo.length} 条挑出来的消息里，总结性格、说话方式和提到过的事。通常需要半分钟到一分钟。</p></div></div>
+      <div class="shimmer" style="width:90%"></div><div class="shimmer" style="width:70%"></div><div class="shimmer" style="width:80%"></div>
+    </div>
+  </section>`;
+  $app.querySelector('#back').onclick = viewBasics;
+
+  await sampleReady;
+  const fallback = (why) => {
+    $app.querySelector('#ai').innerHTML = `<h3>只用本地统计继续</h3><p class="muted">${why}</p>
+      <p class="faint">没有 AI 分析时，性格和回忆需要你自己补充；口头禅和说话习惯已经从统计里拿到了。</p>
+      <div class="row"><button class="btn" id="retry">再试一次</button><button class="btn primary" id="skip">先这样继续</button></div>`;
+    $app.querySelector('#retry').onclick = viewAnalyze;
+    $app.querySelector('#skip').onclick = () => { S.profile = normalizeAnalysis({ catchphrases: st.catchphrases.slice(0, 6).map((c) => c.text), addressesOtherAs: st.vocatives[0]?.text || '' }); S.memories = []; viewReview(); };
+  };
+  if (!sample) return fallback('这个页面需要在 Claude 里打开，才能请 Claude 帮忙分析。');
+  try {
+    const raw = await sample.json(buildAnalysisPrompt({ who: S.who, other: S.other, stats: st, samples: S.samples }), { modelTier: 'default' });
+    S.profile = normalizeAnalysis(raw);
+    if (!S.profile.addressesOtherAs && st.vocatives[0]) S.profile.addressesOtherAs = st.vocatives[0].text;
+    S.memories = S.profile.memories.map((m) => ({ ...m, on: true }));
+    viewReview();
+  } catch (e) {
+    fallback(errText(e));
+  }
+}
+
+// ========== 第 4 屏：核对 ==========
+const TRAITS = ['温柔', '乐观', '幽默', '爱唠叨', '急性子', '严厉', '心软', '要强', '节俭', '爱操心', '话少', '爱笑', '倔强', '细心', '豁达', '护短'];
+
+function viewReview() {
+  const p = S.profile;
+  const allTraits = [...new Set([...p.traits, ...TRAITS])];
+  const field = (id, label, value, hint = '') => `<label class="lbl">${label}${hint ? `<span class="faint">${hint}</span>` : ''}<textarea class="textarea" id="${id}" rows="3">${esc(value)}</textarea></label>`;
+  $app.innerHTML = `
+  <section class="screen">
+    <button class="btn icon" id="back" aria-label="返回">${icon('back')}</button>
+    <div class="card glass">
+      <div class="eyebrow">请你核对</div>
+      <h2>从聊天里认识的${esc(S.who)}</h2>
+      <p class="muted">这些是根据聊天总结的，不一定对。哪里不像，直接改。</p>
+    </div>
+    <div class="card glass">
+      <h3>性格</h3>
+      <div class="chips" id="traits">${allTraits.map((t) => `<button class="chip" aria-pressed="${p.traits.includes(t)}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+      ${field('personality', '用一段话形容', p.personality)}
+    </div>
+    <div class="card glass">
+      <h3>口头禅 <span class="faint">点一下去掉</span></h3>
+      <div class="chips" id="phrases">${p.catchphrases.map((c) => `<button class="chip x" data-c="${esc(c)}">${esc(c)}</button>`).join('') || '<span class="faint">没有找到明显的口头禅。</span>'}</div>
+      <div class="row"><input class="input" id="add-phrase" placeholder="再加一个口头禅" style="flex:1 1 200px"><button class="btn small" id="add-phrase-go">加上</button></div>
+      <label class="lbl">TA 怎么叫${esc(S.other || '你')}<input class="input" id="addr" value="${esc(p.addressesOtherAs)}" placeholder="例如：老陈、老头子"></label>
+      ${field('style', '说话的样子', p.speakingStyle)}
+      ${field('love', '怎么表达关心', p.loveStyle)}
+      ${field('habits', '生活习惯', p.habits)}
+      ${field('likes', '喜欢的东西', p.likes)}
+    </div>
+    <div class="card glass">
+      <h3>聊天里提到的事 <span class="faint">勾选的，TA 才会当成自己的回忆</span></h3>
+      ${S.memories.length ? S.memories.map((m, i) => `
+        <label class="mem"><input type="checkbox" data-m="${i}" ${m.on ? 'checked' : ''}>
+          <span>${esc(m.text)}${m.evidence ? `<span class="q">原话${m.date ? ` · ${esc(m.date)}` : ''}：${esc(m.evidence)}</span>` : ''}</span></label>`).join('') : '<p class="faint">没有找到明确提到的事。可以以后在回忆本里补。</p>'}
+    </div>
+    ${p.gaps ? `<div class="gap"><b>聊天记录看不出来的：</b>${esc(p.gaps)} 这些需要家人补充。</div>` : ''}
+    <button class="btn primary block" id="go">去见${esc(S.basics.callName || S.who)}</button>
+  </section>`;
+  $app.querySelector('#back').onclick = viewWelcome;
+  $app.querySelectorAll('[data-t]').forEach((c) => (c.onclick = () => c.setAttribute('aria-pressed', String(c.getAttribute('aria-pressed') !== 'true'))));
+  const bindPhrases = () => $app.querySelectorAll('[data-c]').forEach((c) => (c.onclick = () => { p.catchphrases = p.catchphrases.filter((x) => x !== c.dataset.c); c.remove(); }));
+  bindPhrases();
+  $app.querySelector('#add-phrase-go').onclick = () => {
+    const v = $app.querySelector('#add-phrase').value.trim();
+    if (!v || p.catchphrases.includes(v)) return;
+    p.catchphrases.push(v);
+    const box = $app.querySelector('#phrases');
+    if (!box.querySelector('[data-c]')) box.innerHTML = '';
+    box.insertAdjacentHTML('beforeend', `<button class="chip x" data-c="${esc(v)}">${esc(v)}</button>`);
+    $app.querySelector('#add-phrase').value = '';
+    bindPhrases();
+  };
+  $app.querySelectorAll('[data-m]').forEach((c) => (c.onchange = () => (S.memories[+c.dataset.m].on = c.checked)));
+  $app.querySelector('#go').onclick = () => {
+    p.traits = [...$app.querySelectorAll('[data-t][aria-pressed="true"]')].map((c) => c.dataset.t);
+    p.personality = $app.querySelector('#personality').value.trim();
+    p.addressesOtherAs = $app.querySelector('#addr').value.trim();
+    p.speakingStyle = $app.querySelector('#style').value.trim();
+    p.loveStyle = $app.querySelector('#love').value.trim();
+    p.habits = $app.querySelector('#habits').value.trim();
+    p.likes = $app.querySelector('#likes').value.trim();
+    // 只保存分析结果和挑出的样本，不保存聊天原文
+    const keep = { who: S.who, other: S.other, basics: S.basics, profile: p, memories: S.memories, statsText: S.stats ? describeStats(S.stats) : S.statsText, samplesText: S.samples ? formatSamplesForProfile(S.samples, S.who) : S.samplesText, muted: S.muted };
+    ls.set('profile', keep);
+    Object.assign(S, keep);
+    S.turns = [];
+    viewTalk();
+  };
+}
+
+// ========== 第 5 屏：对话 ==========
+function personaFromState() {
+  const p = S.profile;
+  return {
+    name: S.who,
+    callName: S.basics.callName,
+    gender: S.basics.gender,
+    traits: p.traits,
+    personality: p.personality,
+    speakingStyle: p.speakingStyle,
+    catchphrases: p.catchphrases.join('、'),
+    loveStyle: p.loveStyle,
+    habits: p.habits,
+    likes: p.likes,
+    chatStyle: S.statsText,
+    family: S.other ? [{ name: S.other, relation: '', calledAs: p.addressesOtherAs }] : [],
+    chatSamples: S.samplesText,
+  };
+}
+
+const voice = {
+  q: [], busy: false, onIdle: () => {},
+  say(text) {
+    if (S.muted || !window.speechSynthesis || !text.trim()) return;
+    this.q.push(text);
+    if (!this.busy) this.next();
+  },
+  next() {
+    const t = this.q.shift();
+    if (!t) { this.busy = false; this.onIdle(); return; }
+    this.busy = true;
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'zh-CN';
+    const v = speechSynthesis.getVoices().filter((x) => /^zh[-_]CN/i.test(x.lang));
+    if (v.length) u.voice = v.find((x) => x.localService) || v[0];
+    u.rate = .95;
+    u.pitch = S.basics.gender === 'male' ? .85 : 1.05;
+    const guard = setTimeout(() => this.next(), 2000 + t.length * 400);
+    u.onend = u.onerror = () => { clearTimeout(guard); this.next(); };
+    speechSynthesis.speak(u);
+  },
+  stop() { this.q = []; this.busy = false; try { speechSynthesis.cancel(); } catch {} },
+};
+
+const CARE_RE = /(不想活|活不下去|活着没意思|想死|自杀|轻生|结束(我的)?生命|去找你|来找你|陪你走|跟你走|随你去|一起走吧|没有你我活)/;
+function showCare() {
+  const name = esc(S.basics.callName || S.who);
+  const scrim = document.createElement('div');
+  scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="sheet glass" role="dialog" aria-modal="true">
+    <h2>先停一下，好吗？</h2>
+    <p class="muted">${name}最希望的，是你好好地活着。现在就给身边信任的人打个电话，或者拨打下面的热线，有人会认真听你说。</p>
+    <div class="hotlines">
+      <div><span>全国心理援助热线（中国大陆）</span><b>12356</b></div>
+      <div><span>北京心理危机研究与干预中心</span><b>010-82951332</b></div>
+      <div><span>香港撒玛利亚防止自杀会</span><b>2389 2222</b></div>
+      <div><span>台湾安心专线</span><b>1925</b></div>
+    </div>
+    <button class="btn primary block" id="ok">我知道了</button></div>`;
+  document.body.append(scrim);
+  scrim.querySelector('#ok').onclick = () => scrim.remove();
+}
+
+function viewTalk() {
+  const persona = personaFromState();
+  const memories = S.memories.filter((m) => m.on).map((m) => ({ text: m.date ? `${m.text}（${m.date}）` : m.text, status: 'confirmed', source: 'chat', createdAt: '' }));
+  const rules = buildSystemPrompt(persona, memories) + `\n\n${describeSpeaker(persona, S.other)}\n（以上是你的人物设定，不要复述。接下来是对话。）`;
+  const name = esc(S.basics.callName || S.who);
+  $app.innerHTML = `
+  <div class="talk" id="talk">
+    <nav class="bar glass">
+      <button class="btn icon" id="back" aria-label="返回">${icon('back')}</button>
+      <div class="t">${name}<small>回忆生成 · 非本人</small></div>
+      <button class="btn icon" id="mute" aria-label="${S.muted ? '打开声音' : '关闭声音'}">${icon(S.muted ? 'mute' : 'sound')}</button>
+      <button class="btn icon" id="info" aria-label="TA 的资料">${icon('book')}</button>
+    </nav>
+    <section class="stage">
+      <div class="portrait"><div class="halo"></div><div class="ring"></div>
+        <div class="avatar">${S.basics.photo ? `<img src="${S.basics.photo}" alt="">` : esc(S.who.slice(-1))}</div></div>
+      <div class="caption" id="cap" aria-live="polite"></div>
+    </section>
+    <form class="compose glass" id="form">
+      <input class="input" id="msg" autocomplete="off" enterkeyhint="send" placeholder="想对${name}说什么…">
+      <button class="btn primary" aria-label="发送">${icon('send')}</button>
+    </form>
+    <p class="tag-ai">原型：对话用 Claude 生成；声音用设备自带的朗读。</p>
+  </div>`;
+  const $talk = $app.querySelector('#talk');
+  const $cap = $app.querySelector('#cap');
+  const $msg = $app.querySelector('#msg');
+  let ctl = null;
+  const setState = (s) => { $talk.className = `talk s-${s}`; };
+  voice.onIdle = () => setState('idle');
+
+  const fallbackReply = () => {
+    const c = S.profile.catchphrases;
+    const pickOne = c.length ? c[Math.floor(Math.random() * c.length)] : '嗯，我在呢';
+    return `${pickOne}。（要在 Claude 里打开这个页面，我才能真正回答你。）`;
+  };
+
+  async function ask(userText) {
+    voice.stop();
+    ctl?.abort();
+    ctl = new AbortController();
+    setState('thinking');
+    if (userText) S.turns.push({ role: 'user', content: userText });
+    const head = userText ? `<span class="me">你：${esc(userText)}</span>` : '';
+    $cap.innerHTML = head + '<span class="faint">…</span>';
+    let said = '';
+    let reply = '';
+    const flushSentences = (text, final) => {
+      const rest = text.slice(said.length);
+      const m = final ? [rest] : rest.match(/^[\s\S]*[。！？!?…~～\n]/);
+      if (m && m[0].trim()) { voice.say(m[0].trim()); said += m[0]; }
+    };
+    try {
+      await sampleReady;
+      if (!sample) throw { code: 'unavailable' };
+      const greeting = !userText;
+      const first = { role: 'user', content: rules + (greeting ? `\n\n【提示（不是家人说的话）：${S.other || '家人'}刚刚来看你。请你先开口，像平时那样打个招呼，一两句话。】` : '') };
+      const input = [first, ...S.turns].reduce((acc, t) => {
+        const last = acc[acc.length - 1];
+        if (last && last.role === t.role) last.content += '\n\n' + t.content; else acc.push({ ...t });
+        return acc;
+      }, []);
+      const { text } = await sample(input, {
+        modelTier: 'quick', cache: false, signal: ctl.signal,
+        onText: ({ text }) => { reply = text; $cap.innerHTML = head + esc(text); $cap.scrollTop = $cap.scrollHeight; flushSentences(text, false); },
+      });
+      reply = text.trim();
+      flushSentences(reply, true);
+    } catch (e) {
+      if (e?.code === 'cancelled') return;
+      reply = e?.code === 'unavailable' ? fallbackReply() : '';
+      if (!reply) { $cap.innerHTML = head + `<span class="err">${errText(e)}</span>`; setState('idle'); if (userText) S.turns.pop(); return; }
+      $cap.innerHTML = head + esc(reply);
+      voice.say(reply.replace(/（[^）]*）$/, ''));
+    }
+    S.turns.push({ role: 'assistant', content: reply });
+    if (S.turns.length > 40) S.turns = S.turns.slice(-40);
+    setState(voice.busy ? 'speaking' : 'idle');
+    if (voice.busy) setState('speaking');
+  }
+
+  $app.querySelector('#form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const t = $msg.value.trim();
+    if (!t) return;
+    $msg.value = '';
+    if (CARE_RE.test(t)) showCare();
+    ask(t);
+  });
+  $app.querySelector('#back').onclick = () => { voice.stop(); ctl?.abort(); viewReview(); };
+  $app.querySelector('#mute').onclick = (e) => {
+    S.muted = !S.muted;
+    ls.set('profile', { ...(ls.get('profile') || {}), muted: S.muted });
+    if (S.muted) voice.stop();
+    e.currentTarget.innerHTML = icon(S.muted ? 'mute' : 'sound');
+    toast(S.muted ? '已静音，只显示文字' : '声音已打开', 1600);
+  };
+  $app.querySelector('#info').onclick = () => {
+    const scrim = document.createElement('div');
+    scrim.className = 'scrim';
+    const p = S.profile;
+    scrim.innerHTML = `<div class="sheet glass" role="dialog" aria-modal="true">
+      <h2>${esc(S.who)}的资料</h2>
+      <p class="faint">这些都来自聊天记录和你的核对。完整版 App 里可以继续补充、保存新的回忆。</p>
+      ${p.catchphrases.length ? `<h3>口头禅</h3><div class="chips">${p.catchphrases.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</div>` : ''}
+      ${p.personality ? `<h3>性格</h3><p class="muted">${esc(p.personality)}</p>` : ''}
+      ${p.speakingStyle ? `<h3>说话的样子</h3><p class="muted">${esc(p.speakingStyle)}</p>` : ''}
+      <h3>记得的事</h3>${S.memories.filter((m) => m.on).map((m) => `<p class="muted">· ${esc(m.text)}</p>`).join('') || '<p class="faint">还没有。</p>'}
+      <button class="btn block" id="close">关闭</button></div>`;
+    scrim.addEventListener('click', (e) => { if (e.target === scrim || e.target.id === 'close') scrim.remove(); });
+    document.body.append(scrim);
+  };
+  setState('idle');
+  ask(null); // TA 先开口
+}
+
+// 启动
+viewWelcome();
+</script>

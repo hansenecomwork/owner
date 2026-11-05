@@ -1,6 +1,8 @@
 // 念念 · 前端（无需构建，直接运行）
 // 设计原则：一屏只做一件事；按钮大、字大；所有按钮都有文字；任何时候都能返回。
 
+import * as WX from './wechat-import.js';
+
 const $app = document.getElementById('app');
 const $toasts = document.getElementById('toasts');
 
@@ -454,6 +456,7 @@ const STEPS = [
     title: (p) => `${ta(p)}是个什么样的人`,
     desc: () => '点选合适的词，再用自己的话说说。可以点麦克风直接说。',
     body: (p) => `
+      ${p.id ? `<a class="btn block" href="#/p/${p.id}/import" style="margin-bottom:22px">${icon('upload')}从微信聊天记录导入（最推荐）</a>` : ''}
       <div class="field"><span class="label">性格（可多选）</span>
         <div class="chips" data-multi="traits">${TRAITS.map((t) => `<button type="button" class="chip" aria-pressed="${(p.traits || []).includes(t)}" data-v="${t}">${t}</button>`).join('')}</div>
       </div>
@@ -974,7 +977,7 @@ async function viewTalk(id) {
 // =====================================================================
 // 回忆本
 // =====================================================================
-const SOURCE_LABEL = { family: '家人写下', told: '聊天中讲起', life: '近况' };
+const SOURCE_LABEL = { family: '家人写下', told: '聊天中讲起', life: '近况', chat: '微信记录' };
 
 async function viewMemories(id) {
   const [p, all] = await Promise.all([api(`/personas/${id}`), api(`/personas/${id}/memories`)]);
@@ -998,12 +1001,13 @@ async function viewMemories(id) {
         </div>
         ${tab === 'pending'
           ? `<p class="tip" style="margin:0 0 16px">这些是聊天时你们讲起的往事。确认是真的，${name}才会把它当成自己的回忆。</p>`
-          : `<button class="btn primary block" id="add" style="margin-bottom:18px">${icon('plus')}写下一段回忆</button>
+          : `<button class="btn primary block" id="add" style="margin-bottom:12px">${icon('plus')}写下一段回忆</button>
+             <a class="btn block" href="#/p/${id}/import" style="margin-bottom:18px">${icon('upload')}从微信聊天记录导入</a>
              <div id="composer"></div>`}
         <div id="list">
           ${shown.map((m) => `
             <article class="memory glass ${m.status}" data-id="${m.id}">
-              <div class="text">${esc(m.text)}</div>
+              <div class="text">${esc(m.text)}</div>${m.evidence ? `<div class="quote">原话：${esc(m.evidence)}</div>` : ''}
               <div class="meta"><span class="tag ${m.source}">${SOURCE_LABEL[m.source] || ''}</span>${m.speaker ? `<span>${esc(m.speaker)}</span>` : ''}<span>${new Date(m.createdAt).toLocaleDateString('zh-CN')}</span></div>
               <div class="actions">
                 ${m.status === 'pending' ? `<button class="btn small primary" data-act="ok">${icon('check')}是真的，记住</button>` : ''}
@@ -1067,6 +1071,144 @@ async function viewMemories(id) {
 }
 
 // =====================================================================
+// 导入微信聊天记录：本地解析 → 选人 → 分析 → 家人核对 → 写入资料与回忆
+// =====================================================================
+async function viewImport(id) {
+  const p = await api(`/personas/${id}`);
+  const st = { parsed: null, who: '', other: '', stats: null, samples: null, result: null, memOn: [] };
+  const name = esc(p.callName || p.name);
+  const frame = (inner, back = `#/p/${id}/edit`) => {
+    $app.innerHTML = `<div class="page">
+      <nav class="topbar glass">
+        <a class="btn icon-btn" href="${back}" aria-label="返回">${icon('back')}</a>
+        <div class="title">导入微信聊天记录<span class="sub">让${name}说话更像${ta(p)}</span></div>
+        <span style="width:52px"></span>
+      </nav>${inner}</div>`;
+  };
+
+  function stepPick() {
+    frame(`
+      <section class="card glass">
+        <h2 class="step-title">把聊天记录给我</h2>
+        <p class="step-desc">支持导出的 TXT、CSV、JSON，也可以把复制的聊天内容直接粘贴进来。</p>
+        <div class="btn-row"><label class="btn primary" for="wx-file">${icon('upload')}选择文件</label></div>
+        <input type="file" id="wx-file" accept=".txt,.csv,.json,.html,text/*" class="sr-only">
+        <div class="field" style="margin-top:22px"><label class="label" for="wx-paste">或者粘贴聊天内容</label>
+          <textarea class="textarea" id="wx-paste" rows="6" placeholder="2024-01-20 07:30:00 ${esc(p.name)}&#10;吃了没"></textarea></div>
+        <button class="btn block" id="wx-go">用粘贴的内容</button>
+      </section>
+      <div class="notice glass"><b>隐私：</b>聊天记录在你的浏览器里解析，原文不会上传。只有挑出的一部分${ta(p)}的消息（手机号、卡号等已自动隐藏）会发给 Claude 分析。<br><br>
+        <b>怎么拿到记录：</b>电脑版微信里多选消息后复制，或「合并转发」给自己再复制。导出全部记录要用第三方工具，它们会解密微信数据库，不是官方功能，可能违反微信用户协议，请只在自己的电脑和账号上使用。导入前，请先征得家人同意。</div>`);
+    const go = (text) => {
+      if (/<html|<body|<div/i.test(text.slice(0, 2000))) text = new DOMParser().parseFromString(text, 'text/html').body.innerText || '';
+      const parsed = WX.parseWeChat(text);
+      if (parsed.messages.length < 5) return toast('<b>没能认出聊天格式。</b>请确认每条消息带有「时间 + 名字」。', 'err', 6000);
+      st.parsed = parsed;
+      stepWho();
+    };
+    $app.querySelector('#wx-file').addEventListener('change', async (e) => { const f = e.target.files[0]; if (f) go(await f.text()); });
+    $app.querySelector('#wx-go').addEventListener('click', () => go($app.querySelector('#wx-paste').value));
+  }
+
+  function stepWho() {
+    const { messages, senders } = st.parsed;
+    const times = messages.map((m) => m.time).filter(Boolean).sort((a, b) => a - b);
+    const fmt = (d) => d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
+    frame(`
+      <section class="card glass">
+        <h2 class="step-title">读到 ${messages.length} 条消息</h2>
+        <p class="step-desc">${times.length ? `从 ${fmt(times[0])} 到 ${fmt(times[times.length - 1])}，` : ''}${senders.length} 个人在说话。哪一位是${name}？</p>
+        ${senders.length > 3 ? '<p class="tip" style="margin:0 0 16px">这像是群聊。只用单聊效果最好。</p>' : ''}
+        <div class="who-grid">${senders.slice(0, 12).map((s) => `<button class="btn" data-who="${esc(s.name)}">${esc(s.name)}<small>${s.count} 条</small></button>`).join('')}</div>
+      </section>`);
+    $app.querySelectorAll('[data-who]').forEach((b) => b.addEventListener('click', () => {
+      st.who = b.dataset.who;
+      st.other = senders.find((s) => s.name !== st.who)?.name || '';
+      stepAnalyze();
+    }));
+  }
+
+  async function stepAnalyze() {
+    st.stats = WX.analyzeSpeaker(st.parsed.messages, st.who);
+    st.samples = WX.pickSamples(st.parsed.messages, st.who);
+    const s = st.stats;
+    frame(`
+      <section class="card glass">
+        <h2 class="step-title">${esc(st.who)}说话的样子</h2>
+        <p class="step-desc">本地统计：${esc(WX.describeStats(s)).replace(/\n/g, '<br>')}</p>
+        <div class="thinking-row"><span class="spinner"></span><span>正在请 Claude 读懂${ta(p)}，通常需要半分钟到一分钟…</span></div>
+      </section>`, `#/p/${id}/import`);
+    try {
+      st.result = await api(`/personas/${id}/import/analyze`, { method: 'POST', json: { who: st.who, other: st.other, stats: s, samples: st.samples } });
+      st.memOn = st.result.memories.map(() => true);
+      stepReview();
+    } catch (e) {
+      fail(e);
+      stepPick();
+    }
+  }
+
+  function stepReview() {
+    const r = st.result;
+    const area = (k, label, v) => `<div class="field"><label class="label" for="im-${k}">${label}</label><textarea class="textarea" id="im-${k}" rows="3">${esc(v)}</textarea></div>`;
+    frame(`
+      <section class="card glass">
+        <h2 class="step-title">请你核对</h2>
+        <p class="step-desc">这些是根据聊天总结的，不一定对。哪里不像，直接改；不想要的，清空即可。${r.demo ? '<br><b>演示模式：</b>没有配置 ANTHROPIC_API_KEY，只有本地统计的结果。' : ''}</p>
+        <div class="field"><label class="label" for="im-traits">性格关键词（用顿号分开）</label><input class="input" id="im-traits" value="${esc(r.traits.join('、'))}"></div>
+        ${area('personality', '性格', r.personality)}
+        <div class="field"><label class="label" for="im-catch">口头禅（用顿号分开）</label><input class="input" id="im-catch" value="${esc(r.catchphrases.join('、'))}"></div>
+        <div class="field"><label class="label" for="im-addr">${esc(st.who)}怎么叫${esc(st.other || '你')}</label><input class="input" id="im-addr" value="${esc(r.addressesOtherAs)}"></div>
+        ${area('speakingStyle', '说话的样子', r.speakingStyle)}
+        ${area('loveStyle', '怎么表达关心', r.loveStyle)}
+        ${area('habits', '生活习惯', r.habits)}
+        ${area('likes', '喜好', r.likes)}
+      </section>
+      <section class="card glass">
+        <h2 class="step-title" style="font-size:1.3rem">聊天里提到的事</h2>
+        <p class="step-desc">勾选的会存进回忆本，${name}会把它当成自己的回忆。</p>
+        ${r.memories.map((m, i) => `<label class="check" style="margin-bottom:10px"><input type="checkbox" data-mi="${i}" checked><span>${esc(m.text)}${m.evidence ? `<span class="quote">原话${m.date ? ` · ${esc(m.date)}` : ''}：${esc(m.evidence)}</span>` : ''}</span></label>`).join('') || '<p class="tip">没有找到明确提到的事。</p>'}
+      </section>
+      ${r.gaps ? `<div class="notice glass"><b>聊天记录看不出来的：</b>${esc(r.gaps)}</div>` : ''}
+      <button class="btn primary block" id="im-save" style="margin-top:18px">${icon('check')}保存到${name}的资料</button>`, `#/p/${id}/import`);
+    $app.querySelectorAll('[data-mi]').forEach((c) => c.addEventListener('change', () => (st.memOn[+c.dataset.mi] = c.checked)));
+    $app.querySelector('#im-save').addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true;
+      const val = (k) => $app.querySelector(`#im-${k}`).value.trim();
+      const merge = (old, add) => (!add ? old || '' : !old ? add : old.includes(add) ? old : `${old}\n${add}`);
+      const split = (v) => v.split(/[、,，\s]+/).map((x) => x.trim()).filter(Boolean);
+      const family = [...(p.family || [])];
+      const addr = val('addr');
+      if (st.other && !family.some((f) => f.name === st.other)) family.push({ name: st.other, relation: '', calledAs: addr });
+      else if (st.other && addr) family.forEach((f) => { if (f.name === st.other && !f.calledAs) f.calledAs = addr; });
+      const payload = {
+        traits: [...new Set([...(p.traits || []), ...split(val('traits'))])].slice(0, 30),
+        personality: merge(p.personality, val('personality')),
+        catchphrases: merge(p.catchphrases, split(val('catch')).join('、')),
+        speakingStyle: merge(p.speakingStyle, val('speakingStyle')),
+        loveStyle: merge(p.loveStyle, val('loveStyle')),
+        habits: merge(p.habits, val('habits')),
+        likes: merge(p.likes, val('likes')),
+        chatStyle: WX.describeStats(st.stats),
+        chatSamples: WX.formatSamplesForProfile(st.samples, st.who),
+        family,
+      };
+      try {
+        await api(`/personas/${id}`, { method: 'PUT', json: payload });
+        const picked = r.memories.filter((_, i) => st.memOn[i]);
+        for (const m of picked) {
+          await api(`/personas/${id}/memories`, { method: 'POST', json: { text: m.date ? `${m.text}（${m.date}）` : m.text, source: 'chat', evidence: m.evidence } });
+        }
+        toast(`<b>好了。</b>${name}学会了${ta(p)}的说话方式，还记住了 ${picked.length} 件事。`);
+        location.hash = `#/p/${id}`;
+      } catch (err) { fail(err); e.currentTarget.disabled = false; }
+    });
+  }
+
+  stepPick();
+}
+
+// =====================================================================
 // 路由
 // =====================================================================
 async function route() {
@@ -1081,6 +1223,7 @@ async function route() {
     else if ((m = h.match(/^\/p\/([a-f0-9]{12})$/))) await viewTalk(m[1]);
     else if ((m = h.match(/^\/p\/([a-f0-9]{12})\/edit$/))) await viewWizard(m[1]);
     else if ((m = h.match(/^\/p\/([a-f0-9]{12})\/memories$/))) await viewMemories(m[1]);
+    else if ((m = h.match(/^\/p\/([a-f0-9]{12})\/import$/))) await viewImport(m[1]);
     else location.hash = '#/';
   } catch (e) {
     $app.innerHTML = `<div class="page"><div class="notice glass"><b>打不开这一页：</b>${esc(e.message)}</div><a class="btn block" href="#/" style="margin-top:16px">回到首页</a></div>`;

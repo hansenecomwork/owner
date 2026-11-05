@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
 import * as store from './store.js';
-import { aiStatus, streamReply, extractMemories, greetingInstruction } from './ai.js';
+import { aiStatus, streamReply, extractMemories, greetingInstruction, analyzeChat } from './ai.js';
 import { describeSpeaker } from './prompt.js';
 import { voiceStatus, cloneVoice, deleteVoice, synthesize, transcribe } from './voice.js';
 
@@ -31,7 +31,7 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 // ---------- 人物资料字段白名单 ----------
 const TEXT_FIELDS = {
   name: 60, callName: 60, relationship: 60, gender: 10, birthYear: 10, passedYear: 10, hometown: 60, occupation: 60,
-  personality: 3000, speakingStyle: 3000, catchphrases: 2000, dialect: 1000, likes: 3000, dislikes: 2000, habits: 3000,
+  personality: 3000, speakingStyle: 3000, chatStyle: 4000, catchphrases: 2000, dialect: 1000, likes: 3000, dislikes: 2000, habits: 3000,
   values: 3000, loveStyle: 3000, angerStyle: 2000, stories: 8000, timeline: 8000, wishes: 3000, neverSay: 2000,
   aboutPassing: 2000, chatSamples: 20000, extra: 5000,
 };
@@ -215,7 +215,9 @@ app.post('/api/personas/:id/memories', wrap(async (req, res) => {
   await mustPersona(req.params.id);
   const text = String(req.body?.text || '').trim();
   if (!text) return res.status(400).json({ error: '内容是空的' });
-  const m = store.makeMemory({ text, source: 'family', status: 'confirmed', speaker: req.body?.speaker });
+  const source = req.body?.source === 'chat' ? 'chat' : 'family';
+  const m = store.makeMemory({ text, source, status: 'confirmed', speaker: req.body?.speaker });
+  if (source === 'chat' && req.body?.evidence) m.evidence = String(req.body.evidence).slice(0, 200);
   await store.mutateMemories(req.params.id, (list) => list.push(m));
   res.status(201).json(m);
 }));
@@ -241,6 +243,25 @@ app.delete('/api/personas/:id/memories/:mid', wrap(async (req, res) => {
     if (i >= 0) list.splice(i, 1);
   });
   res.json({ ok: true });
+}));
+
+// ---------- 导入微信聊天记录 ----------
+// 浏览器在本地解析聊天记录，只把挑出的 TA 的消息样本（已隐藏手机号等）和统计结果发过来。
+app.post('/api/personas/:id/import/analyze', express.json({ limit: '1mb' }), wrap(async (req, res) => {
+  const p = await mustPersona(req.params.id);
+  const { who, other, stats, samples } = req.body || {};
+  if (!who || !stats || !samples) return res.status(400).json({ error: '缺少聊天内容' });
+  const revive = (x) => (x ? new Date(x) : null);
+  const clean = {
+    who: String(who).slice(0, 40),
+    other: String(other || '').slice(0, 40),
+    stats: { ...stats, from: revive(stats.from), to: revive(stats.to) },
+    samples: {
+      pairs: (samples.pairs || []).slice(0, 80).map((x) => ({ text: String(x.text).slice(0, 200), time: revive(x.time), prev: x.prev ? { sender: String(x.prev.sender).slice(0, 40), text: String(x.prev.text).slice(0, 200) } : null })).filter((x) => x.prev),
+      solo: (samples.solo || []).slice(0, 160).map((x) => ({ text: String(x.text).slice(0, 200), time: revive(x.time) })),
+    },
+  };
+  res.json(await analyzeChat(p, clean));
 }));
 
 // ---------- 对话 ----------

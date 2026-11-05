@@ -4,6 +4,7 @@
 const FIELD_LABELS = [
   ['personality', '性格'],
   ['speakingStyle', '说话方式'],
+  ['chatStyle', '从聊天记录统计出的说话习惯'],
   ['catchphrases', '口头禅'],
   ['dialect', '方言 / 语言习惯'],
   ['likes', '喜欢的东西'],
